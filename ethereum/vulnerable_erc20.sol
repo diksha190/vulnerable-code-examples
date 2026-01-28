@@ -8,10 +8,11 @@ pragma solidity ^0.7.0;  // ❌ CRITICAL: Old Solidity version - Integer Overflo
  * DO NOT USE IN PRODUCTION
  * 
  * Vulnerabilities included:
- * - Integer Overflow/Underflow
+ * - Integer Overflow/Underflow (Solidity < 0.8)
  * - Missing Access Control
  * - Reentrancy Vulnerability
  * - Missing Zero Address Check
+ * - Timestamp Dependency
  */
 
 contract VulnerableERC20 {
@@ -21,13 +22,12 @@ contract VulnerableERC20 {
     uint8 public decimals = 18;
     uint256 public totalSupply = 1000000 * (10 ** uint256(decimals));
     
-    // ❌ CRITICAL: Hardcoded admin key (Hardcoded Secrets)
+    // ❌ CRITICAL: Hardcoded admin key
     address constant ADMIN = 0x1234567890123456789012345678901234567890;
     
     mapping(address => uint256) public balances;
     mapping(address => mapping(address => uint256)) public allowance;
     
-    // Events
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     
@@ -44,7 +44,6 @@ contract VulnerableERC20 {
     }
     
     // ❌ CRITICAL: Reentrancy vulnerability
-    // External call BEFORE state update
     function withdraw(uint256 amount) public {
         require(balances[msg.sender] >= amount, "Insufficient balance");
         
@@ -59,9 +58,7 @@ contract VulnerableERC20 {
     // ❌ HIGH: Unchecked call return value
     function unsafeWithdraw(uint256 amount) public {
         require(balances[msg.sender] >= amount);
-        
-        // ❌ No require on return value
-        msg.sender.call{value: amount}("");
+        msg.sender.call{value: amount}("");  // ❌ No require check
         balances[msg.sender] -= amount;
     }
     
@@ -75,21 +72,9 @@ contract VulnerableERC20 {
         emit Transfer(msg.sender, to, amount);
     }
     
-    // ❌ HIGH: Missing zero address check
-    function transferFrom(address from, address to, uint256 amount) public {
-        require(balances[from] >= amount, "Insufficient balance");
-        require(allowance[from][msg.sender] >= amount, "Allowance exceeded");
-        
-        // ❌ No zero address check for 'to'
-        balances[from] -= amount;
-        balances[to] += amount;
-        allowance[from][msg.sender] -= amount;
-        emit Transfer(from, to, amount);
-    }
-    
     // ❌ HIGH: No access control - anyone can burn
     function burn(address account, uint256 amount) public {
-        // ❌ No onlyAdmin or onlyOwner check
+        // ❌ No onlyOwner check
         balances[account] -= amount;
         totalSupply -= amount;
         emit Transfer(account, address(0), amount);
