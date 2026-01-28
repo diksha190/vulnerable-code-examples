@@ -33,10 +33,10 @@ jobs:
       - name: Clone Security Agent
         run: |
           git clone https://github.com/security-ai-labs/security-ai-agent.git temp-agent
+          cp -r temp-agent/src .
+          cp -r temp-agent/config .
           cp temp-agent/main.py .
-          cp temp-agent/web3_analyzer.py .
           cp temp-agent/github_pr_commenter.py .
-          cp temp-agent/security_rules.py .
           cp temp-agent/requirements.txt .
           rm -rf temp-agent
 
@@ -51,7 +51,3 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO_NAME: ${{ github.repository }}
-
-      - name: Analysis Complete
-        if: always()
-        run: echo "✅ Security analysis completed"
