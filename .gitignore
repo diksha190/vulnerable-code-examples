@@ -1,0 +1,38 @@
+# Secrets
+*.key
+.env
+.env.local
+private_keys/
+secrets/
+mnemonics/
+
+# Node modules
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build files
+dist/
+build/
+out/
+artifacts/
+cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Dependencies
+/target
+Cargo.lock

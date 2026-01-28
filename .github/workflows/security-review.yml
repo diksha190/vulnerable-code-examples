@@ -1,0 +1,14 @@
+name: Web3 Security Review
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  security-review:
+    uses: security-ai-labs/security-ai-agent/.github/workflows/security-review-reusable.yml@main
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
