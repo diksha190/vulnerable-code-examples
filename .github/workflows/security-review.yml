@@ -9,6 +9,49 @@ on:
 
 jobs:
   security-review:
-    uses: security-ai-labs/security-ai-agent/.github/workflows/security-review-reusable.yml@main
-    secrets:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Clone Security Agent
+        run: |
+          git clone https://github.com/security-ai-labs/security-ai-agent.git temp-agent
+          cp temp-agent/main.py .
+          cp temp-agent/web3_analyzer.py .
+          cp temp-agent/github_pr_commenter.py .
+          cp temp-agent/security_rules.py .
+          cp temp-agent/requirements.txt .
+          rm -rf temp-agent
+
+      - name: Install Security Agent Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Security Analysis
+        run: python main.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_NAME: ${{ github.repository }}
+
+      - name: Analysis Complete
+        if: always()
+        run: echo "✅ Security analysis completed"
