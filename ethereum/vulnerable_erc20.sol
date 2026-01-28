@@ -56,4 +56,5 @@ contract RandomToken {
         }
         return size > 0;
     }
+    
 }
