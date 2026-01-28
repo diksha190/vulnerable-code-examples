@@ -101,3 +101,4 @@ contract VulnerableERC20 {
         return balances[account];
     }
 }# Updated test
+# Updated test
