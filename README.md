@@ -24,15 +24,17 @@ git clone https://github.com/diksha190/vulnerable-code-examples.git
 cd vulnerable-code-examples
 
 # Clone the security agent into a subdirectory
-git clone https://github.com/security-ai-labs/security-ai-agent.git
+git clone https://github.com/security-ai-labs/security-ai-agent.git security-agent
 
 # Install dependencies
-pip install -r security-ai-agent/requirements.txt
+pip install -r security-agent/requirements.txt
 
-# Set environment variables and run analysis from this directory
+# Set environment variables and run analysis
+# Note: Never commit tokens to your repository! Use secure token management.
+# Token needs 'repo' and 'pull_requests: write' permissions
 export GITHUB_TOKEN=your_token_here
 export REPO_NAME=diksha190/vulnerable-code-examples
-cd security-ai-agent
+cd security-agent
 python main.py
 ```
 

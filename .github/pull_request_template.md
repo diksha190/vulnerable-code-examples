@@ -10,7 +10,7 @@ Briefly describe what vulnerabilities this code demonstrates.
 - [ ] tx.origin Authorization
 - [ ] Unchecked Call Returns
 - [ ] SQL Injection
-- [ ] XSS
+- [ ] Cross-Site Scripting (XSS)
 - [ ] Other: _______________
 
 ## Expected Detections
