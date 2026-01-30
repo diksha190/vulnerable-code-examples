@@ -38,16 +38,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_NAME: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
         run: |
-          cd security-agent
           python main.py
-        working-directory: ${{ github.workspace }}
+        working-directory: security-agent
       
       - name: Upload Analysis Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: security-analysis-results
-          path: security-agent/analysis-*.json
+          path: ${{ github.workspace }}/security-agent/analysis-*.json
           retention-days: 30

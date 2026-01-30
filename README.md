@@ -23,12 +23,16 @@ To test the security agent locally:
 git clone https://github.com/diksha190/vulnerable-code-examples.git
 cd vulnerable-code-examples
 
-# Clone the security agent
+# Clone the security agent into a subdirectory
 git clone https://github.com/security-ai-labs/security-ai-agent.git
-cd security-ai-agent
 
-# Install and run
-pip install -r requirements.txt
+# Install dependencies
+pip install -r security-ai-agent/requirements.txt
+
+# Set environment variables and run analysis from this directory
+export GITHUB_TOKEN=your_token_here
+export REPO_NAME=diksha190/vulnerable-code-examples
+cd security-ai-agent
 python main.py
 ```
 
