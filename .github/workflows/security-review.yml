@@ -1,53 +1,53 @@
-name: Web3 Security Review
+name: Security Scan
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+    types: [opened, synchronize, reopened]
 
 jobs:
-  security-review:
+  security-analysis:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
       contents: read
+      pull-requests: write
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout target repository
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
+          path: target-repo
+      
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-
+          python-version: '3.10'
+      
+      - name: Checkout Security Agent
+        uses: actions/checkout@v4
+        with:
+          repository: security-ai-labs/security-ai-agent
+          path: agent
+      
       - name: Install dependencies
+        run: pip install -r agent/requirements.txt
+      
+      - name: Copy agent files to target (temporary fix)
         run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Clone Security Agent
-        run: |
-          git clone https://github.com/security-ai-labs/security-ai-agent.git temp-agent
-          cp -r temp-agent/src .
-          cp -r temp-agent/config .
-          cp temp-agent/main.py .
-          cp temp-agent/github_pr_commenter.py .
-          cp temp-agent/requirements.txt .
-          rm -rf temp-agent
-
-      - name: Install Security Agent Dependencies
-        run: |
-          pip install -r requirements.txt
-
+          cp -r agent/src target-repo/
+          cp -r agent/config target-repo/
+          cp agent/main.py target-repo/
+          cp agent/github_pr_commenter.py target-repo/
+      
       - name: Run Security Analysis
-        run: python main.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO_NAME: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python main.py
+        working-directory: target-repo
+      
+      - name: Cleanup agent files
+        if: always()
+        run: |
+          cd target-repo
+          rm -rf src/ config/ main.py github_pr_commenter.py
