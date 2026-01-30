@@ -1,0 +1,53 @@
+name: Security Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+jobs:
+  security-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
+    steps:
+      - name: Checkout vulnerable code repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Checkout Security Agent
+        uses: actions/checkout@v4
+        with:
+          repository: security-ai-labs/security-ai-agent
+          path: security-agent
+          ref: main
+      
+      - name: Install dependencies
+        run: |
+          pip install -r security-agent/requirements.txt
+      
+      - name: Run Security Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_NAME: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          cd security-agent
+          python main.py
+        working-directory: ${{ github.workspace }}
+      
+      - name: Upload Analysis Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-analysis-results
+          path: security-agent/analysis-*.json
+          retention-days: 30
