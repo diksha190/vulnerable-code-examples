@@ -1,8 +1,11 @@
-name: Security Scan
+name: AI Security Review
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - master
 
 jobs:
   security-analysis:
@@ -12,42 +15,88 @@ jobs:
       pull-requests: write
     
     steps:
-      - name: Checkout target repository
+      - name: Checkout PR code
         uses: actions/checkout@v4
         with:
-          path: target-repo
+          fetch-depth: 0
       
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.9'
       
-      - name: Checkout Security Agent
-        uses: actions/checkout@v4
+      - name: Clone Security Agent
+        run: |
+          git clone https://github.com/security-ai-labs/security-ai-agent.git
+          cd security-ai-agent
+          pip install -r requirements.txt
+      
+      - name: Create .env file
+        run: |
+          cd security-ai-agent
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
+      
+      - name: Get changed files
+        id: changed-files
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.head_ref }} > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+      
+      - name: Analyze changed files
+        id: analyze
+        run: |
+          cd security-ai-agent
+          python pr_analyzer.py \
+            --repo ${{ github.repository }} \
+            --pr-number ${{ github.event.pull_request.number }} \
+            --changed-files ../changed_files.txt \
+            --output ../analysis_results.json
+      
+      - name: Post PR Comment
+        uses: actions/github-script@v7
         with:
-          repository: security-ai-labs/security-ai-agent
-          path: agent
-      
-      - name: Install dependencies
-        run: pip install -r agent/requirements.txt
-      
-      - name: Copy agent files to target (temporary fix)
-        run: |
-          cp -r agent/src target-repo/
-          cp -r agent/config target-repo/
-          cp agent/main.py target-repo/
-          cp agent/github_pr_commenter.py target-repo/
-      
-      - name: Run Security Analysis
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_NAME: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: python main.py
-        working-directory: target-repo
-      
-      - name: Cleanup agent files
-        if: always()
-        run: |
-          cd target-repo
-          rm -rf src/ config/ main.py github_pr_commenter.py
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('analysis_results.json', 'utf8'));
+            
+            let comment = '## 🛡️ AI Security Analysis\n\n';
+            
+            if (results.total_vulnerabilities === 0) {
+              comment += '✅ **No security vulnerabilities detected!**\n\n';
+              comment += '🎉 Great job! Your code looks secure.\n';
+            } else {
+              comment += `⚠️ **Found ${results.total_vulnerabilities} security issue(s)**\n\n`;
+              
+              for (const file of results.files) {
+                if (file.vulnerabilities.length > 0) {
+                  comment += `### 📄 \`${file.path}\`\n\n`;
+                  
+                  for (const vuln of file.vulnerabilities) {
+                    const emoji = {
+                      'CRITICAL': '🚨',
+                      'HIGH': '⚠️',
+                      'MEDIUM': '⚡',
+                      'LOW': 'ℹ️'
+                    }[vuln.severity] || '📌';
+                    
+                    comment += `${emoji} **${vuln.severity}**: ${vuln.title}\n`;
+                    comment += `- **Line**: ${vuln.line_number}\n`;
+                    comment += `- **Description**: ${vuln.description}\n`;
+                    comment += `- **Recommendation**: ${vuln.recommendation}\n\n`;
+                  }
+                }
+              }
+            }
+            
+            comment += '\n---\n';
+            comment += `💰 Analysis cost: $${results.total_cost}\n`;
+            comment += '🤖 Powered by [AI Security Agent](https://github.com/security-ai-labs/security-ai-agent)\n';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
