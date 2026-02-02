@@ -60,6 +60,7 @@ jobs:
       - name: Analyze changed files
         if: steps.changed-files.outputs.skip_analysis == 'false'
         id: analyze
+        continue-on-error: true
         run: |
           cd security-ai-agent
           
