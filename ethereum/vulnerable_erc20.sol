@@ -101,7 +101,7 @@ contract VulnerableERC20 {
         return balances[account];
     }
 
-    function balanceOf3(address account) public view returns (uint256) {
+    function balanceOf35(address account) public view returns (uint256) {
         return balances[account];
     }
 
