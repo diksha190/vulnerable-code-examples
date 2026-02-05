@@ -558,7 +558,6 @@ if __name__ == "__main__":
 
     # FIXED: Production settings
     debug_mode = os.getenv("FLASK_ENV") == "development"
-
     app.run(
         host="127.0.0.1",  # FIXED: Localhost only
         port=5000,

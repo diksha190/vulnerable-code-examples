@@ -422,7 +422,6 @@ const host = process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0';
 app.listen(PORT, host, () => {
     console.log(`Secure Frontend API running on ${host}:${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    
 });
 
 module.exports = app;
