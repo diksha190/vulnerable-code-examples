@@ -101,7 +101,6 @@ contract SecureDeFiLendingPool is ReentrancyGuard, Pausable, AccessControl {
     function deposit(address token, uint256 amount) 
         external 
         validToken(token) 
-        nonReentrant 
         whenNotPaused 
     {
         require(amount > 0, "Amount must be greater than 0");
@@ -186,7 +185,7 @@ contract SecureDeFiLendingPool is ReentrancyGuard, Pausable, AccessControl {
     /**
      * @notice Liquidate undercollateralized position - FIXED: ReentrancyGuard + proper ordering
      */
-    function liquidate(address user) external nonReentrant whenNotPaused {
+    function liquidate(address user) external nonReentrant {
         Position storage position = positions[user];
         require(position.borrowAmount > 0, "No position to liquidate");
         
@@ -412,6 +411,6 @@ contract SecureDeFiLendingPool is ReentrancyGuard, Pausable, AccessControl {
         if (debtValue == 0) return MAX_UINT;
         
         return collateralValue.mul(100).div(debtValue);
-        
+
     }
 }
