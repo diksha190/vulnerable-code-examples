@@ -423,5 +423,4 @@ app.listen(PORT, host, () => {
     console.log(`Secure Frontend API running on ${host}:${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
-
 module.exports = app;

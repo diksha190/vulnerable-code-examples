@@ -410,6 +410,5 @@ contract SecureDeFiLendingPool is ReentrancyGuard, Pausable, AccessControl {
         if (!collateralValid || !debtValid) return 0;
         if (debtValue == 0) return MAX_UINT;
         return collateralValue.mul(100).div(debtValue);
-
     }
 }
