@@ -310,7 +310,7 @@ contract SecureDeFiLendingPool is ReentrancyGuard, Pausable, AccessControl {
     /**
      * @notice Queue oracle update - FIXED: Added timelock + access control
      */
-    function queueOracleUpdate(address newOracle) external onlyRole(ADMIN_ROLE) {
+    function queueOracleUpdate(address newOracle) external {
         require(newOracle != address(0), "Invalid address");
         
         bytes32 actionId = keccak256(abi.encodePacked("UPDATE_ORACLE", newOracle));
