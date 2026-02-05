@@ -549,6 +549,7 @@ def forbidden(e):
 def internal_error(e):
     """FIXED: No stack traces in production"""
     app.logger.error(f"Internal error: {str(e)}")
+
     return jsonify({"error": "Internal server error"}), 500
 
 
